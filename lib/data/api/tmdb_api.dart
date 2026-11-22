@@ -50,10 +50,21 @@ class TmdbApi {
       queryParameters: {'api_key': _apiKey},
       headers: const {'Accept': 'application/json'},
     ));
-    _dio!.interceptors.add(LogInterceptor(
-      request: false,
-      responseBody: false,
-      logPrint: (o) => kDebugMode ? debugPrint('[tmdb] $o') : null,
+    _dio!.interceptors.add(InterceptorsWrapper(
+      onResponse: (r, h) {
+        if (kDebugMode) {
+          debugPrint('[tmdb] ${r.statusCode} ${r.requestOptions.method} '
+              '${r.requestOptions.path}');
+        }
+        h.next(r);
+      },
+      onError: (e, h) {
+        if (kDebugMode) {
+          debugPrint('[tmdb] hata ${e.response?.statusCode ?? e.type} '
+              '${e.requestOptions.path}');
+        }
+        h.next(e);
+      },
     ));
     try {
       final r = await _get('configuration');

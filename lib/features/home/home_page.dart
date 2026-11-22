@@ -254,7 +254,7 @@ class _HeroSection extends ConsumerWidget {
         ),
         if (rest.isNotEmpty)
           SizedBox(
-            height: 236,
+            height: 252,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
