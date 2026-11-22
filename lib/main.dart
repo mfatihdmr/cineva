@@ -56,7 +56,9 @@ class _CinevaAppState extends ConsumerState<CinevaApp> {
     super.initState();
     _linkHandled = widget.initialLink == null;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Ads.bootstrap();
+      Ads.bootstrap().then((_) {
+        if (mounted) ref.invalidate(adsEnabledProvider);
+      });
       ref.read(bootstrapProvider);
     });
   }

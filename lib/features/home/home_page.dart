@@ -272,18 +272,23 @@ class _LoadingRow extends StatelessWidget {
   const _LoadingRow();
 
   @override
-  Widget build(BuildContext context) => const SizedBox(
+  Widget build(BuildContext context) => SizedBox(
         height: 236,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(16, 18, 16, 8),
-          child: Row(
-            children: [
-              ShimmerBox(width: 118, height: 200),
-              SizedBox(width: 11),
-              ShimmerBox(width: 118, height: 200),
-              SizedBox(width: 11),
-              ShimmerBox(width: 118, height: 200),
-            ],
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
+          child: LayoutBuilder(
+            builder: (_, c) {
+              final w = ((c.maxWidth - 22) / 3).clamp(60.0, 118.0);
+              return Row(
+                children: [
+                  ShimmerBox(width: w, height: 200),
+                  const SizedBox(width: 11),
+                  ShimmerBox(width: w, height: 200),
+                  const SizedBox(width: 11),
+                  ShimmerBox(width: w, height: 200),
+                ],
+              );
+            },
           ),
         ),
       );

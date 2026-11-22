@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
@@ -42,10 +43,13 @@ class Ads {
       _sdkReady = false;
       return;
     }
-    _requestConsent();
+    await _requestConsent();
   }
 
-  static void _requestConsent() {
+  /// Rıza akışı tamamlanana kadar bekler; [Ads.enabled] bu noktadan sonra
+  /// geçerli değeri taşır.
+  static Future<void> _requestConsent() {
+    final done = Completer<void>();
     ConsentInformation.instance.requestConsentInfoUpdate(
       ConsentRequestParameters(tagForUnderAgeOfConsent: false),
       () async {
@@ -53,15 +57,24 @@ class Ads {
           _consentResolved = true;
           _canRequest = await ConsentInformation.instance.canRequestAds();
           if (_canRequest) InterstitialAdManager.instance.preload();
+          done.complete();
         });
       },
-      (error) {
-        // Rıza bilgisi alınamazsa reklam göstermeyiz; uygulama çalışmaya devam eder.
+      (error) async {
+        // Rıza bilgisi alınamadıysa bile canRequestAds kontrol edilebilir;
+        // EEA dışındaki kullanıcılar için true dönebilir.
         _consentResolved = true;
-        _canRequest = false;
+        try {
+          _canRequest = await ConsentInformation.instance.canRequestAds();
+        } catch (_) {
+          _canRequest = false;
+        }
+        if (_canRequest) InterstitialAdManager.instance.preload();
+        done.complete();
         debugPrint('[Ads] consent update hatası: ${error.errorCode}');
       },
     );
+    return done.future;
   }
 
   /// Ayarlardan "Reklam tercihleri" için privacy options formu.
