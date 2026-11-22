@@ -36,7 +36,7 @@ class L10n {
 
   // ── Medya ──
   String get movies => t('Filmler', 'Movies');
-  String get series => t('Diziler', 'TV Dizileri');
+  String get series => t('Diziler', 'TV Shows');
   String get people => t('Kişiler', 'People');
   String get companies => t('Şirketler', 'Companies');
   String get collections => t('Koleksiyonlar', 'Collections');
@@ -146,7 +146,7 @@ class L10n {
   String get to => t('Bitiş', 'To');
 
   String sortByLabel(String key) {
-    const map = {
+    const tr = {
       'popularity.desc': 'Popülerlik',
       'popularity.asc': 'Popülerlik (artan)',
       'vote_average.desc': 'Puan',
@@ -163,7 +163,25 @@ class L10n {
       'watchability.popularity.desc': 'İzlenebilirlik',
       'theta_surreal_popularity.desc': 'Sürreal popülerlik',
     };
-    return isTr ? (map[key] ?? key.replaceAll('.desc', ' (↓)')) : key;
+    const en = {
+      'popularity.desc': 'Popularity',
+      'popularity.asc': 'Popularity (asc)',
+      'vote_average.desc': 'Rating',
+      'vote_count.desc': 'Vote count',
+      'primary_release_date.desc': 'Release date',
+      'first_air_date.desc': 'First air date',
+      'revenue.desc': 'Revenue',
+      'budget.desc': 'Budget',
+      'original_title.asc': 'Title (A→Z)',
+      'title.asc': 'Title (A→Z)',
+      'adult.desc': 'Adult content',
+      'cast_normalizing_popularity.desc': 'Cast popularity',
+      'certified.popularity.desc': 'Certification popularity',
+      'watchability.popularity.desc': 'Watchability',
+      'theta_surreal_popularity.desc': 'Surreal popularity',
+    };
+    final map = isTr ? tr : en;
+    return map[key] ?? key.replaceAll('.desc', isTr ? ' (↓)' : ' (desc)');
   }
 
   // ── Ayarlar ──
