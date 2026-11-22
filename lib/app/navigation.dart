@@ -27,8 +27,13 @@ import 'deep_link.dart';
 class Nav {
   Nav._();
 
-  static Future<T?> push<T>(BuildContext context, Widget screen) =>
-      Navigator.of(context).push<T>(MaterialPageRoute(builder: (_) => screen));
+  static void _dismissKeyboard() =>
+      FocusManager.instance.primaryFocus?.unfocus();
+
+  static Future<T?> push<T>(BuildContext context, Widget screen) {
+    _dismissKeyboard();
+    return Navigator.of(context).push<T>(MaterialPageRoute(builder: (_) => screen));
+  }
 
   static Future<void> home(BuildContext context) =>
       _replace(context, const HomeShell());

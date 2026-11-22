@@ -23,6 +23,7 @@ class HomeShell extends ConsumerStatefulWidget {
 class _HomeShellState extends ConsumerState<HomeShell> {
   int _index = 0;
   bool _registered = false;
+  final Set<int> _visited = {0};
 
   @override
   void initState() {
@@ -61,15 +62,16 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       body: IndexedStack(
         index: _index,
         children: [
-          const HomePage(),
-          SearchScreen(),
-          MyListScreen(),
-          SettingsScreen(),
+          for (var i = 0; i < 4; i++)
+            _visited.contains(i) ? _tab(i) : const SizedBox.shrink(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
+        onDestinationSelected: (i) => setState(() {
+          _visited.add(i);
+          _index = i;
+        }),
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.explore_outlined),
@@ -94,6 +96,13 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       ),
     );
   }
+
+  Widget _tab(int i) => switch (i) {
+        0 => const HomePage(),
+        1 => const SearchScreen(),
+        2 => const MyListScreen(),
+        _ => const SettingsScreen(),
+      };
 
   Widget _missingKeyView(L10n l) {
     final theme = Theme.of(context);
