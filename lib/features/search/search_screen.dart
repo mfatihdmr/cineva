@@ -242,18 +242,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 }
 
-class _TypeBar extends StatelessWidget {
+class _TypeBar extends ConsumerWidget {
   final String? type;
   final ValueChanged<String?> onChanged;
   const _TypeBar({required this.type, required this.onChanged});
 
   @override
-  Widget build(BuildContext context) {
-    const options = <(String?, String)>[
-      (null, 'Tümü'),
-      ('movie', 'Film'),
-      ('tv', 'Dizi'),
-      ('person', 'Kişi'),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = ref.watch(l10nProvider);
+    final options = <(String?, String)>[
+      (null, l.t('Tümü', 'All')),
+      ('movie', l.movies),
+      ('tv', l.series),
+      ('person', l.people),
     ];
     return SizedBox(
       height: 46,
