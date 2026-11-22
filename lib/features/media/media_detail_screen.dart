@@ -51,7 +51,9 @@ class _MediaDetailScreenState extends ConsumerState<MediaDetailScreen> {
     super.initState();
     _scroll.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) InterstitialAdManager.instance.maybeShow();
+      if (mounted && ref.read(adsEnabledProvider)) {
+        InterstitialAdManager.instance.maybeShow();
+      }
     });
   }
 

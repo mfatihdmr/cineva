@@ -52,6 +52,7 @@ class Ads {
         await ConsentForm.loadAndShowConsentFormIfRequired((err) async {
           _consentResolved = true;
           _canRequest = await ConsentInformation.instance.canRequestAds();
+          if (_canRequest) InterstitialAdManager.instance.preload();
         });
       },
       (error) {
@@ -91,6 +92,7 @@ class BannerSlot extends ConsumerStatefulWidget {
 class _BannerSlotState extends ConsumerState<BannerSlot> {
   BannerAd? _ad;
   bool _failed = false;
+  bool _loading = false;
 
   @override
   void didChangeDependencies() {
@@ -99,16 +101,24 @@ class _BannerSlotState extends ConsumerState<BannerSlot> {
   }
 
   void _load() {
-    if (!ref.read(adsEnabledProvider) || _ad != null || _failed) return;
+    if (_loading || _ad != null || _failed) return;
+    if (!ref.read(adsEnabledProvider)) return;
+    _loading = true;
     BannerAd(
       adUnitId: Secrets.admobBannerId,
       size: widget.size,
       request: const AdRequest(),
       listener: BannerAdListener(
-        onAdLoaded: (ad) => setState(() => _ad = ad as BannerAd),
+        onAdLoaded: (ad) => setState(() {
+          _ad = ad as BannerAd;
+          _loading = false;
+        }),
         onAdFailedToLoad: (ad, err) {
           ad.dispose();
-          setState(() => _failed = true);
+          setState(() {
+            _failed = true;
+            _loading = false;
+          });
           debugPrint('[Ads] banner yüklenemedi: ${err.message}');
         },
       ),
@@ -124,6 +134,11 @@ class _BannerSlotState extends ConsumerState<BannerSlot> {
   @override
   Widget build(BuildContext context) {
     if (!ref.watch(adsEnabledProvider)) return const SizedBox.shrink();
+    if (_ad == null && !_failed && !_loading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _load();
+      });
+    }
     final ad = _ad;
     if (ad == null) return const SizedBox.shrink();
     return Center(
@@ -160,6 +175,7 @@ class AnchoredBanner extends ConsumerStatefulWidget {
 
 class _AnchoredBannerState extends ConsumerState<AnchoredBanner> {
   BannerAd? _ad;
+  bool _loading = false;
 
   @override
   void initState() {
@@ -168,21 +184,30 @@ class _AnchoredBannerState extends ConsumerState<AnchoredBanner> {
   }
 
   Future<void> _load() async {
-    if (!Ads.enabled || _ad != null) return;
+    if (_loading || _ad != null) return;
+    if (!ref.read(adsEnabledProvider)) return;
+    _loading = true;
     final width = MediaQuery.of(context).size.width.toInt();
     final size = await AdSize.getAnchoredAdaptiveBannerAdSize(
       Orientation.portrait,
       width > 0 ? width : 360,
     );
-    if (!mounted || size == null) return;
+    if (!mounted || size == null) {
+      _loading = false;
+      return;
+    }
     final ad = BannerAd(
       adUnitId: Secrets.admobBannerId,
       size: size,
       request: const AdRequest(),
       listener: BannerAdListener(
-        onAdLoaded: (a) => setState(() => _ad = a as BannerAd),
+        onAdLoaded: (a) => setState(() {
+          _ad = a as BannerAd;
+          _loading = false;
+        }),
         onAdFailedToLoad: (a, e) {
           a.dispose();
+          _loading = false;
           debugPrint('[Ads] anchored banner: ${e.message}');
         },
       ),
@@ -199,6 +224,11 @@ class _AnchoredBannerState extends ConsumerState<AnchoredBanner> {
   @override
   Widget build(BuildContext context) {
     if (!ref.watch(adsEnabledProvider)) return const SizedBox.shrink();
+    if (_ad == null && !_loading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _load();
+      });
+    }
     final ad = _ad;
     if (ad == null) return const SizedBox.shrink();
     return SizedBox(
@@ -241,7 +271,11 @@ class InterstitialAdManager {
   /// Sekme değişiminde çağrılır; 12 saatte birden fazla göstermez.
   void maybeShow() {
     final ad = _ad;
-    if (ad == null || !_throttledOk) return;
+    if (ad == null) {
+      preload();
+      return;
+    }
+    if (!_throttledOk) return;
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (a) {
         a.dispose();

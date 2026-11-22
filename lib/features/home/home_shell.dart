@@ -29,7 +29,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      InterstitialAdManager.instance.maybeShow();
+      if (ref.read(adsEnabledProvider)) {
+        InterstitialAdManager.instance.maybeShow();
+      }
       if (!_registered) {
         _registered = true;
         ref.read(settingsProvider.notifier).registerAppOpen();
